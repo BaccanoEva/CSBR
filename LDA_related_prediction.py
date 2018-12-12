@@ -8,7 +8,11 @@ import random
 
 
 #parameters
+combination_method_list = ["one_for_each_mashup.result","one_or_two_combination_for_each_mashup.result","one_or_two_or_three_combination_for_each_mashup.result","one_or_two_or_three_or_four_combination_for_each_mashup.result"]
 combination_method = "one_or_two_combination_for_each_mashup.result"
+is_combine_sim_length = True
+just_consider_one_length = True
+
 set_num_threshold = 10
 cluster_number = 5
 extract_relationship_threshold = 0.5
@@ -20,20 +24,7 @@ f = open("Test_set_"+str(Test_set_size))
 print "0. Test set"
 Test_set = []
 
-#generate random number for Test set
-'''
-while len(Test_set)<(Test_set_size+1):
-    n = random.randint(0,6975)
-    if n in Test_set:
-        continue
-    else:
-        Test_set.append(n)
-Test_set.sort()
 
-for i in Test_set:
-    f.write(str(i))
-    f.write("|")
-'''
 l = f.readline()
 t = l.split("|")
 for i in range(len(t)-1):
@@ -528,7 +519,8 @@ def recommendation_bundle_method4(index,bundle_amount):
                 point[key]=n1
                 p[key] = n2
 
-            p = combine_sim_length(p)
+            if is_combine_sim_length:
+                p = combine_sim_length(p)
 
             res = sorted(p.items(), lambda x, y: cmp(x[1], y[1]), reverse=True)
             res_bundle = []
@@ -565,6 +557,9 @@ def recommendation_bundle_method4(index,bundle_amount):
                 n1,n2 = evaluate_bundle(value,content)
                 point[key]=n1
                 p[key] = n2
+
+            if is_combine_sim_length:
+                p = combine_sim_length(p)
 
             res = sorted(p.items(), lambda x, y: cmp(x[1], y[1]), reverse=True)
 
@@ -697,69 +692,65 @@ def recommendation_bundle_method4(index,bundle_amount):
 
 
 #this part is for the second recommendation method based on bundle
-bundle_size_ = 1
-p = []
-r = []
-l = []
-c = 0
-m = 0
-for i in range(len(Test_set)):
-    print i
-    #bundle recommendation with CF
-    res1 = recommendation_bundle_method4(Test_set[i],bundle_size_)
-    #res2 = cf(Test_set[i],5,Test_set)
-    res = res1
-    #for t in res2:
-    #    if t in res:
-    #        res = res
-    #    else:
-    #        res.append(t)
-    print res
+bundle_size_list = [1,2,3,4,5,6,7,8,9,10]
+for bundle_size_ in bundle_size_list:
+    p = []
+    r = []
+    l = []
+    c = 0
+    m = 0
+    for i in range(len(Test_set)):
+        gt = []
+        for j in groundtruth[Test_set[i]]:
+            gt.append(int(j))
+        print gt
+        
+        if just_consider_one_length and len(gt)>1:
+            continue
 
-    gt = []
-    for j in groundtruth[Test_set[i]]:
-        gt.append(int(j))
-    print gt
+        print i
+        res = recommendation_bundle_method4(Test_set[i],10)
+        print res
 
-    if len(gt)==0 or len(res)==0:
-        c+=1
-    if len(gt)>1:
-        m+=1
+        if len(gt)==0 or len(res)==0:
+            c+=1
+        if len(gt)>1:
+            m+=1
 
-    hit=0
+        hit=0
 
-    for j in range(len(res)):
-        if res[j] in gt:
-            hit += 1
+        for j in range(len(res)):
+            if res[j] in gt:
+                hit += 1
 
-    if len(res)==0 or len(gt)==0:
-        presition = 0
-        recall = 0
-    else:
-        presition = float(hit)/len(res)
-        recall = float(hit)/len(gt)
+        if len(res)==0 or len(gt)==0:
+            presition = 0
+            recall = 0
+        else:
+            presition = float(hit)/len(res)
+            recall = float(hit)/len(gt)
 
 
 
-    print "presition",presition
-    print "recall",recall
+        print "presition",presition
+        print "recall",recall
 
 
-    p.append(presition)
-    r.append(recall)
-    l.append(len(res))
+        p.append(presition)
+        r.append(recall)
+        l.append(len(res))
 
 
-print "Parameters:"
+    print "Parameters:"
 
-print "combination_method,",combination_method
-print "set_num_threshold,",set_num_threshold
-print "cluster_number,",cluster_number
-print "extract_relationship_threshold,",extract_relationship_threshold
-print "Test_set_size,",Test_set_size
-print "bundle recommendation@",bundle_size_,"bundle with mean length,",float(sum(l))/(len(l)-c)
+    print "combination_method,",combination_method
+    print "set_num_threshold,",set_num_threshold
+    print "cluster_number,",cluster_number
+    print "extract_relationship_threshold,",extract_relationship_threshold
+    print "Test_set_size,",Test_set_size
+    print "bundle recommendation@",bundle_size_,"bundle with mean length,",float(sum(l))/(len(l)-c)
 
-print "mean presition",float(sum(p))/(len(p)-c)
-print "mean recall",float(sum(r))/(len(r)-c)
-print "gt = 0 in Test_set:",c
-print "gt > 1 in Test_set:",m
+    print "mean presition",float(sum(p))/(len(p)-c)
+    print "mean recall",float(sum(r))/(len(r)-c)
+    print "gt = 0 in Test_set:",c
+    print "gt > 1 in Test_set:",m
