@@ -692,11 +692,16 @@ def recommendation_bundle_method4(index,bundle_amount):
 
 
 #this part is for the second recommendation method based on bundle
+result_presition = []
+result_recall = []
+result_map = []
+
 bundle_size_list = [1,2,3,4,5,6,7,8,9,10]
 for bundle_size_ in bundle_size_list:
     p = []
     r = []
     l = []
+    map_val = []
     c = 0
     m = 0
     for i in range(len(Test_set)):
@@ -704,12 +709,12 @@ for bundle_size_ in bundle_size_list:
         for j in groundtruth[Test_set[i]]:
             gt.append(int(j))
         print gt
-        
+
         if just_consider_one_length and len(gt)>1:
             continue
 
         print i
-        res = recommendation_bundle_method4(Test_set[i],10)
+        res = recommendation_bundle_method4(Test_set[i],bundle_size_)
         print res
 
         if len(gt)==0 or len(res)==0:
@@ -718,27 +723,37 @@ for bundle_size_ in bundle_size_list:
             m+=1
 
         hit=0
+        map_v = 0
+        rank = []
 
         for j in range(len(res)):
             if res[j] in gt:
                 hit += 1
+                rank.append(j)
+        rank.sort()
+        for j in range(len(rank)):
+            map_v+=float(j+1)/(rank[j]+1)
 
         if len(res)==0 or len(gt)==0:
             presition = 0
             recall = 0
+            map_v = 0
         else:
             presition = float(hit)/len(res)
             recall = float(hit)/len(gt)
+            map_v = float(map_v)/len(gt)
 
 
 
         print "presition",presition
         print "recall",recall
+        print "map",map_v
 
 
         p.append(presition)
         r.append(recall)
         l.append(len(res))
+        map_val.append(map_v)
 
 
     print "Parameters:"
@@ -752,5 +767,16 @@ for bundle_size_ in bundle_size_list:
 
     print "mean presition",float(sum(p))/(len(p)-c)
     print "mean recall",float(sum(r))/(len(r)-c)
+    print "mean map", float(sum(map_val))/(len(map_val)-c)
+    result_presition.append(float(sum(p))/(len(p)-c))
+    result_recall.append(float(sum(r))/(len(r)-c))
+    result_map.append(float(sum(map_val))/(len(map_val)-c))
     print "gt = 0 in Test_set:",c
     print "gt > 1 in Test_set:",m
+
+print "presition"
+print result_presition
+print "recall"
+print result_recall
+print "map"
+print result_map
