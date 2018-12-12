@@ -922,6 +922,15 @@ for item in reader:
     groundtruth.append(item)
 csvfile.close()
 
+def combine_sim_length(p):
+    #p{key:point}
+    new_p = {}
+    for key, value in p.items():
+        length = len(key)
+        new_p[key] = 1/float(length)+value
+    return new_p
+
+
 def recommendation_bundle_method4(index,bundle_amount):
     #before the recommendation step, check if the mashup in gt is consisted of one or more services
     gt = []
@@ -938,12 +947,14 @@ def recommendation_bundle_method4(index,bundle_amount):
             content = mashup_service_lda_vector["mashup_"+str(index)]
             #print "len(content):",len(content)
             point = {} #{key:[point1,point2,...]}
-            p = {}
+            p = {} #{key:sum(points)}
             items = knowledge_base.items()
             for key,value in items:
                 n1,n2 = evaluate_bundle(value,content)
                 point[key]=n1
                 p[key] = n2
+
+            p = combine_sim_length(p)
 
             res = sorted(p.items(), lambda x, y: cmp(x[1], y[1]), reverse=True)
             res_bundle = []
