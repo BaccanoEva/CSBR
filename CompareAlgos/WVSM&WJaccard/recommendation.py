@@ -1,5 +1,3 @@
-#coding:utf-8
-import jieba
 from scipy import spatial
 from gensim.models.keyedvectors import KeyedVectors
 import pickle
@@ -49,9 +47,6 @@ def cal_sen_vec(sentence, core_word_list, model, debug=False):
     return vec
 
 
-#Core QA Dic Format:
-#core_qa_dic[question][0] = question_vector
-#core_qa_dic[question][1] = answer
 def load_core_qa(core_word_list, model, core_qa_path = 'elec_core_qa'):
     core_qa_dic = {}
     infile = open(core_qa_path)
@@ -90,7 +85,7 @@ def cal_cos_simi(vec_q, vec_core):
 #def cal_cos_simi(vec_q, vec_core):
 #    return (1 - spatial.distance.cosine(vec_q, vec_core))
 
-def find_best_answer(question, core_qa_dic, core_word_list, model):
+def find_best_apis(question, core_qa_dic, core_word_list, model):
     q_vec = cal_sen_vec(sentence = question, core_word_list = core_word_list, model = model, debug = False)
     #print q_vec
     max_simi = 0
@@ -103,9 +98,6 @@ def find_best_answer(question, core_qa_dic, core_word_list, model):
     
     print "Similarity is:"
     print max_simi
-    if max_simi == 0:
-        return u"抱歉，我没办法回答您的这个问题。。。" #No question found
-    print "Best Matched Question is:"
     print best_q
     return core_qa_dic[best_q][1]
             
@@ -130,14 +122,10 @@ def main():
         save_obj(core_qa_dic, 'core_qa')
     while(1):
         user_question = raw_input('###Please input your question (input "exit" to exit): ')
-        if user_question == 'exit':
-            return
-        else:
-            print "Your Question is:"
-            print user_question
-            answer = find_best_answer(user_question, core_qa_dic, core_word_list, model)
-            print "Best Answer is:"
-            print answer
+        
+        answer = find_best_apis(user_question, core_qa_dic, core_word_list, model)
+        print "Best Answer is:"
+        print answer
     
 
 if __name__ == '__main__':
